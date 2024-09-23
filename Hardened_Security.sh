@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 # Log file
 LOG_FILE="/var/log/security_hardening.log"
 
@@ -7,6 +12,36 @@ LOG_FILE="/var/log/security_hardening.log"
 log() {
     echo "$(date): $1" | sudo tee -a $LOG_FILE
 }
+
+
+# Function to install figlet
+install_figlet() {
+    if [ -x "$(command -v apt)" ]; then
+        echo "Installing figlet using apt..."
+        sudo apt update
+        sudo apt install -y figlet
+    elif [ -x "$(command -v yum)" ]; then
+        echo "Installing figlet using yum..."
+        sudo yum install -y figlet
+    else
+        echo "Package manager not found. Please install figlet manually."
+        exit 1
+    fi
+}
+
+# Check if figlet is installed
+if ! command -v figlet &> /dev/null; then
+    echo "figlet is not installed. Installing now..."
+    install_figlet
+fi
+
+
+# Display welcome message
+figlet -f slant "Welcome to Linux Security"
+echo ""
+echo -e "${GREEN}==============================${NC}"
+echo -e "${RED} LINUX SECURITY HARDENING SCRIPT ${NC}"
+echo -e "${GREEN}==============================${NC}"
 
 # Update and upgrade the system
 log "Updating system..."
@@ -51,15 +86,15 @@ sudo chmod 600 /etc/shadow /etc/gshadow
 log "Applying additional system hardening..."
 
 # Disable USB storage
-echo "install usb-storage /bin/true" | sudo tee -a /etc/modprobe.d/disable-usb-storage.conf
+echo -e "${GREEN}*install usb-storage /bin/true ${NC}" | sudo tee -a /etc/modprobe.d/disable-usb-storage.conf
 
 # Disable core dumps
-echo "* hard core 0" | sudo tee -a /etc/security/limits.conf
+echo -e "${GREEN}* hard core 0 ${NC}" | sudo tee -a /etc/security/limits.conf
 
 # Disable IPv6 if not needed
-echo "net.ipv6.conf.all.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.default.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.lo.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf
+echo -e "${GREEN} net.ipv6.conf.all.disable_ipv6 = 1 ${NC}" | sudo tee -a /etc/sysctl.conf
+echo -e "${GREEN} net.ipv6.conf.default.disable_ipv6 = 1 ${NC}" | sudo tee -a /etc/sysctl.conf
+echo -e "${GREEN} net.ipv6.conf.lo.disable_ipv6 = 1 ${NC}" | sudo tee -a /etc/sysctl.conf
 
 # Apply sysctl changes
 sudo sysctl -p
@@ -71,4 +106,6 @@ sudo systemctl status sshd
 
 log "Basic Linux security hardening completed."
 
-echo "Security hardening script completed. Please check $LOG_FILE for details."
+echo -e "${GREEN} Security hardening script completed. Please check $LOG_FILE for details !!! ${NC}"
+
+figlet -f slant "Stay Secured !"
